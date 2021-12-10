@@ -1,22 +1,19 @@
 ## Lexicon Fractional Index
 
-> A Rust version for https://www.npmjs.com/package/fractional-index .
+> A Rust version for fractional-indexing .
 
-> Keys are based on string, and fit with the string order.
+Rewritten from existed codebase:
+
+- Go https://github.com/rocicorp/fracdex
+- JavaScript https://github.com/rocicorp/fractional-indexing
 
 ### Usage
 
 ```rs
-use lexicon_fractional_index::fractional_index;
+use lexicon_fractional_index::generate_key_between;
 
-fractional_index("a", "b")
-// Result("aP")
+generate_key_between(None, None)
 ```
-
-### Todo Next
-
-- deal with fragile behavior of `fractional_index("", "")`
-- use `Option<T>` to reduce chaos brought by `null` and `""` from JavaScript.
 
 ### License
 
