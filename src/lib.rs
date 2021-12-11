@@ -22,12 +22,15 @@ pub fn key_between(a: &str, b: &str) -> Result<String, String> {
     }
 
     let ib = get_int_part(b)?;
+    println!("ib: {}", ib);
 
     let fb = &b[ib.len()..];
     if ib == SMALLEST_INT {
+      println!("small let");
       return Ok((ib as String) + &midpoint("", fb));
     }
     if ib.as_str() < b {
+      println!("smaller");
       return Ok(ib);
     }
     let res = decrement_int(&ib)?;
@@ -35,6 +38,7 @@ pub fn key_between(a: &str, b: &str) -> Result<String, String> {
     if res.is_empty() {
       return Err("range underflow".to_owned());
     }
+    println!("finished: {}", res);
     return Ok(res);
   }
 
@@ -175,12 +179,13 @@ fn increment_int(x: &str) -> Result<String, String> {
 
   let mut digs: Vec<String> = x
     .split("")
+    .filter(|&x| !x.is_empty())
     .collect::<Vec<&str>>()
     .iter()
     .map(|s| s.to_string())
     .collect();
   let head = digs[0].to_owned();
-  digs = digs[1..].to_vec();
+  digs.remove(0);
   let mut carry = true;
 
   let mut i = digs.len() as i64 - 1;
@@ -206,7 +211,7 @@ fn increment_int(x: &str) -> Result<String, String> {
     if h.as_str() > "a" {
       digs.push("0".to_owned())
     } else {
-      digs = digs[1..].to_owned();
+      digs.remove(0);
     }
     return Ok((h as String) + &digs.join(""));
   }
@@ -218,10 +223,14 @@ fn decrement_int(x: &str) -> Result<String, String> {
 
   let mut digs: Vec<String> = x
     .split("")
+    .filter(|&x| !x.is_empty())
     .collect::<Vec<_>>()
     .iter()
     .map(|s| s.to_string())
     .collect();
+
+  println!("digs: {:?} from {:?}", digs, x);
+
   let head = digs[0].to_owned();
   digs.remove(0);
   let mut borrow = true;
@@ -229,7 +238,7 @@ fn decrement_int(x: &str) -> Result<String, String> {
   let mut i = digs.len() as i64 - 1;
   while borrow && i >= 0 {
     let d: i64 = match BASE62_DIGITS.find(&digs[0]) {
-      Some(n) => (n - 1) as i64,
+      Some(n) => (n as i64 - 1),
       None => -2, // TODO
     };
 
@@ -274,7 +283,7 @@ pub fn float64_approx(key: &str) -> Result<f64, String> {
 
   let ip = get_int_part(key)?;
 
-  let mut digs: Vec<&str> = ip.split("").collect::<Vec<_>>();
+  let mut digs: Vec<&str> = ip.split("").filter(|&x| !x.is_empty()).collect::<Vec<_>>();
   let head = digs[0];
   digs.remove(0);
   let mut rv: f64 = 0.0;
@@ -328,13 +337,13 @@ pub fn n_keys_between(a: &str, b: &str, n: usize) -> Result<Vec<String>, String>
 
     return Ok(result);
   }
-  if a.is_ascii() {
-    let c = key_between(a, b)?;
+  if a.is_empty() {
+    let mut c = key_between(a, b)?;
 
     let mut result: Vec<String> = Vec::with_capacity(n);
     result.push(c.to_owned());
     for _i in 0..(n as usize - 1) {
-      let c = key_between(a, &c)?;
+      c = key_between(a, &c)?;
       result.push(c.to_owned());
     }
     result.reverse();

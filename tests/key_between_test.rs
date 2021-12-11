@@ -58,7 +58,7 @@ fn keys_test() -> Result<(), String> {
   test_check("a00", "", "invalid order key: a00")?;
   test_check("a00", "a1", "invalid order key: a00")?;
   test_check("0", "1", "invalid order key head: 0")?;
-  test_check("a1", "a0", "a1 >= a0")?;
+  test_check("a1", "a0", "invalid order: a1 >= a0")?;
   Ok(())
 }
 
