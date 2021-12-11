@@ -1,15 +1,22 @@
-use lexicon_fractional_index::fractional_index;
+extern crate lexicon_fractional_index;
+
+use lexicon_fractional_index::key_between;
 
 fn main() -> Result<(), String> {
-  println!("{:?}", fractional_index("a", "b"));
-  println!("{:?}", fractional_index("", ""));
+  let next = key_between("a0", "a0V")?;
 
-  let mut base = "a".to_owned();
-  let edge = "b".to_owned();
-  for _ in 0..1000 {
-    base = fractional_index(&base, &edge)?;
-    println!("base: {}", base)
-  }
+  // expected "Zz"
+  println!("next: {}", next);
+
+  // println!("{:?}", key_between("a", "b"));
+  // println!("{:?}", key_between("", ""));
+
+  // let base = "b".to_owned();
+  // let mut edge = "c".to_owned();
+  // for _ in 0..1000 {
+  //   edge = key_between(&base, &edge)?;
+  //   println!("base: {}", edge)
+  // }
 
   Ok(())
 }
