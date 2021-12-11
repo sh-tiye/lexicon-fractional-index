@@ -1,116 +1,127 @@
-package fracdex
+extern crate lexicon_fractional_index;
 
-import (
-  "math"
-  "strings"
-  "testing"
+use lexicon_fractional_index::{float64_approx, key_between, n_keys_between};
 
-  "github.com/stretchr/testify/assert"
-)
-
-func TestKeys(t *testing.T) {
-  assert := assert.New(t)
-
-  test := func(a, b, exp string) {
-   act, err := KeyBetween(a, b)
-   if err != nil {
-     assert.Equal("", act)
-     assert.Equal(exp, err.Error())
-   } else {
-     assert.Nil(err)
-     assert.Equal(exp, act)
-   }
+#[test]
+fn keys_test() -> Result<(), String> {
+  fn test_check(a: &str, b: &str, exp: &str) -> Result<(), String> {
+    match key_between(a, b) {
+      Ok(act) => {
+        assert_eq!(exp, act)
+      }
+      Err(err) => {
+        assert_eq!(exp, err)
+      }
+    }
+    Ok(())
   }
 
-  test("", "", "a0")
-  test("", "a0", "Zz")
-  test("", "Zz", "Zy")
-  test("a0", "", "a1")
-  test("a1", "", "a2")
-  test("a0", "a1", "a0V")
-  test("a1", "a2", "a1V")
-  test("a0V", "a1", "a0l")
-  test("Zz", "a0", "ZzV")
-  test("Zz", "a1", "a0")
-  test("", "Y00", "Xzzz")
-  test("bzz", "", "c000")
-  test("a0", "a0V", "a0G")
-  test("a0", "a0G", "a08")
-  test("b125", "b129", "b127")
-  test("a0", "a1V", "a1")
-  test("Zz", "a01", "a0")
-  test("", "a0V", "a0")
-  test("", "b999", "b99")
-  test(
-   "",
-   "A00000000000000000000000000",
-   "invalid order key: A00000000000000000000000000",
-  )
-  test("", "A000000000000000000000000001", "A000000000000000000000000000V")
-  test("zzzzzzzzzzzzzzzzzzzzzzzzzzy", "", "zzzzzzzzzzzzzzzzzzzzzzzzzzz")
-  test("zzzzzzzzzzzzzzzzzzzzzzzzzzz", "", "zzzzzzzzzzzzzzzzzzzzzzzzzzzV")
-  test("a00", "", "invalid order key: a00")
-  test("a00", "a1", "invalid order key: a00")
-  test("0", "1", "invalid order key head: 0")
-  test("a1", "a0", "a1 >= a0")
+  test_check("", "", "a0")?;
+  test_check("", "a0", "Zz")?;
+  test_check("", "Zz", "Zy")?;
+  test_check("a0", "", "a1")?;
+  test_check("a1", "", "a2")?;
+  test_check("a0", "a1", "a0V")?;
+  test_check("a1", "a2", "a1V")?;
+  test_check("a0V", "a1", "a0l")?;
+  test_check("Zz", "a0", "ZzV")?;
+  test_check("Zz", "a1", "a0")?;
+  test_check("", "Y00", "Xzzz")?;
+  test_check("bzz", "", "c000")?;
+  test_check("a0", "a0V", "a0G")?;
+  test_check("a0", "a0G", "a08")?;
+  test_check("b125", "b129", "b127")?;
+  test_check("a0", "a1V", "a1")?;
+  test_check("Zz", "a01", "a0")?;
+  test_check("", "a0V", "a0")?;
+  test_check("", "b999", "b99")?;
+  test_check(
+    "",
+    "A00000000000000000000000000",
+    "invalid order key: A00000000000000000000000000",
+  )?;
+  test_check(
+    "",
+    "A000000000000000000000000001",
+    "A000000000000000000000000000V",
+  )?;
+  test_check(
+    "zzzzzzzzzzzzzzzzzzzzzzzzzzy",
+    "",
+    "zzzzzzzzzzzzzzzzzzzzzzzzzzz",
+  )?;
+  test_check(
+    "zzzzzzzzzzzzzzzzzzzzzzzzzzz",
+    "",
+    "zzzzzzzzzzzzzzzzzzzzzzzzzzzV",
+  )?;
+  test_check("a00", "", "invalid order key: a00")?;
+  test_check("a00", "a1", "invalid order key: a00")?;
+  test_check("0", "1", "invalid order key head: 0")?;
+  test_check("a1", "a0", "a1 >= a0")?;
+  Ok(())
 }
 
-func TestNKeys(t *testing.T) {
-  assert := assert.New(t)
+#[test]
+fn test_n_keys() -> Result<(), String> {
+  fn test_check(a: &str, b: &str, n: usize, exp: &str) -> Result<(), String> {
+    match n_keys_between(a, b, n) {
+      Ok(act_slice) => {
+        let act = act_slice.join(" ");
+        assert_eq!(exp, act);
+      }
+      Err(err) => {
+        assert_eq!(exp, err)
+      }
+    }
 
-  test := func(a, b string, n uint, exp string) {
-   actSlice, err := NKeysBetween(a, b, n)
-   act := strings.Join(actSlice, " ")
-   if err != nil {
-     assert.Equal("", act)
-     assert.Equal(exp, err.Error())
-   } else {
-     assert.Nil(err)
-     assert.Equal(exp, act)
-   }
+    Ok(())
   }
-  test("", "", 5, "a0 a1 a2 a3 a4")
-  test("a4", "", 10, "a5 a6 a7 a8 a9 aA aB aC aD aE")
-  test("", "a0", 5, "Zv Zw Zx Zy Zz")
-  test(
-   "a0",
-   "a2",
-   20,
-   "a04 a08 a0G a0K a0O a0V a0Z a0d a0l a0t a1 a14 a18 a1G a1O a1V a1Z a1d a1l a1t",
-  )
+  test_check("", "", 5, "a0 a1 a2 a3 a4")?;
+  test_check("a4", "", 10, "a5 a6 a7 a8 a9 aA aB aC aD aE")?;
+  test_check("", "a0", 5, "Zv Zw Zx Zy Zz")?;
+  test_check(
+    "a0",
+    "a2",
+    20,
+    "a04 a08 a0G a0K a0O a0V a0Z a0d a0l a0t a1 a14 a18 a1G a1O a1V a1Z a1d a1l a1t",
+  )?;
+
+  Ok(())
 }
 
-func TestToFloat64Approx(t *testing.T) {
-  assert := assert.New(t)
+#[test]
+fn test_to_float64_approx() -> Result<(), String> {
+  fn test_check(key: &str, exp: f64, exp_err: &str) -> Result<(), String> {
+    match float64_approx(key) {
+      Ok(act) => assert!((exp - act).abs() < f64::EPSILON),
+      Err(err) => assert_eq!(exp_err, err),
+    }
 
-  test := func(key string, exp float64, expErr string) {
-   act, err := Float64Approx(key)
-   if expErr != "" {
-     assert.Equal(0.0, act)
-     assert.Equal(expErr, err.Error())
-   } else {
-     assert.Equal(exp, act)
-     assert.NoError(err)
-   }
+    Ok(())
   }
 
-  test("a0", 0.0, "")
-  test("a1", 1.0, "")
-  test("az", 61.0, "")
-  test("b10", 62.0, "")
-  test("z20000000000000000000000000", math.Pow(62.0, 25.0)*2.0, "")
-  test("Z1", -1.0, "")
-  test("Zz", -61.0, "")
-  test("Y10", -62.0, "")
-  test("A20000000000000000000000000", math.Pow(62.0, 25.0)*-2.0, "")
+  let n_62: f64 = 62.0;
 
-  test("a0V", 0.5, "")
-  test("a00V", 31.0/math.Pow(62.0, 2.0), "")
-  test("aVV", 31.5, "")
-  test("ZVV", -31.5, "")
+  test_check("a0", 0.0, "")?;
+  test_check("a1", 1.0, "")?;
+  test_check("az", 61.0, "")?;
+  test_check("b10", 62.0, "")?;
+  test_check("z20000000000000000000000000", n_62.powf(25.0) * 2.0, "")?;
+  test_check("Z1", -1.0, "")?;
+  test_check("Zz", -61.0, "")?;
+  test_check("Y10", -62.0, "")?;
+  test_check("A20000000000000000000000000", n_62.powf(25.0) * -2.0, "")?;
 
-  test("", 0.0, "invalid order key")
-  test("!", 0.0, "invalid order key head: !")
-  test("a400", 0.0, "invalid order key: a400")
-  test("a!", 0.0, "invalid order key: a!")
+  test_check("a0V", 0.5, "")?;
+  test_check("a00V", 31.0 / n_62.powf(2.0), "")?;
+  test_check("aVV", 31.5, "")?;
+  test_check("ZVV", -31.5, "")?;
+
+  test_check("", 0.0, "invalid order key")?;
+  test_check("!", 0.0, "invalid order key head: !")?;
+  test_check("a400", 0.0, "invalid order key: a400")?;
+  test_check("a!", 0.0, "invalid order key: a!")?;
+
+  Ok(())
 }
