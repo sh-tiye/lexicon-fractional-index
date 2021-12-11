@@ -7,6 +7,7 @@ const ZERO: &str = "a0";
 /// If b is empty it indicates largest key.
 /// b must be empty string or > a.
 pub fn key_between(a: &str, b: &str) -> Result<String, String> {
+  // println!("between: {} {}", a, b);
   if !a.is_empty() {
     validate_order_key(a)?;
   }
@@ -22,15 +23,12 @@ pub fn key_between(a: &str, b: &str) -> Result<String, String> {
     }
 
     let ib = get_int_part(b)?;
-    println!("ib: {}", ib);
 
     let fb = &b[ib.len()..];
     if ib == SMALLEST_INT {
-      println!("small let");
       return Ok((ib as String) + &midpoint("", fb));
     }
     if ib.as_str() < b {
-      println!("smaller");
       return Ok(ib);
     }
     let res = decrement_int(&ib)?;
@@ -38,7 +36,6 @@ pub fn key_between(a: &str, b: &str) -> Result<String, String> {
     if res.is_empty() {
       return Err("range underflow".to_owned());
     }
-    println!("finished: {}", res);
     return Ok(res);
   }
 
@@ -82,8 +79,10 @@ fn midpoint(a: &str, b: &str) -> String {
     // go.  note that we don't need to pad `b`, because it can't
     // end before `a` while traversing the common prefix.
     let mut i = 0;
-    for _ in 0..a.len() {
-      let mut c: char = 0 as char;
+    // TODO how Go made this happen?
+    // https://github.com/rocicorp/fracdex/blob/main/fracdex.go#L110-L112
+    for _ in 0..std::cmp::max(a.len(), b.len()) {
+      let mut c: char = '0';
       if a.len() > i {
         c = a.chars().nth(i).unwrap()
       }
@@ -93,7 +92,11 @@ fn midpoint(a: &str, b: &str) -> String {
       i += 1;
     }
     if i > 0 {
-      return b[0..i].to_string() + midpoint(&a[i..], &b[i..]).as_str();
+      if i as i64 > a.len() as i64 - 1 {
+        return b[0..i].to_string() + midpoint("", &b[i..]).as_str();
+      } else {
+        return b[0..i].to_string() + midpoint(&a[i..], &b[i..]).as_str();
+      }
     }
   }
 
@@ -229,15 +232,13 @@ fn decrement_int(x: &str) -> Result<String, String> {
     .map(|s| s.to_string())
     .collect();
 
-  println!("digs: {:?} from {:?}", digs, x);
-
   let head = digs[0].to_owned();
   digs.remove(0);
   let mut borrow = true;
 
   let mut i = digs.len() as i64 - 1;
   while borrow && i >= 0 {
-    let d: i64 = match BASE62_DIGITS.find(&digs[0]) {
+    let d: i64 = match BASE62_DIGITS.find(&digs[i as usize]) {
       Some(n) => (n as i64 - 1),
       None => -2, // TODO
     };
