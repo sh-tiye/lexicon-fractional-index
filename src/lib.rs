@@ -91,9 +91,9 @@ fn midpoint(a: &str, b: &str) -> String {
     }
     if i > 0 {
       if i as i64 > a.len() as i64 - 1 {
-        return b[0..i].to_string() + midpoint("", &b[i..]).as_str();
+        return b[0..i].to_string() + &midpoint("", &b[i..]);
       } else {
-        return b[0..i].to_string() + midpoint(&a[i..], &b[i..]).as_str();
+        return b[0..i].to_string() + &midpoint(&a[i..], &b[i..]);
       }
     }
   }
