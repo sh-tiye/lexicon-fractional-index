@@ -1,13 +1,13 @@
 [package]
 name = "lexicon_fractional_index"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 authors = ["Shore <yong@shore.network>"]
 license = "MIT"
-description = "Fractional index implementation migrated from JavaScript"
-homepage = "https://github.com/shore-ai/lexion-fractional-index/"
+description = "Fractional index implementation migrated from Go/JavaScript"
+homepage = "https://github.com/TODO/lexicon-fractional-index/"
 documentation = "https://docs.rs/crate/lexicon_fractional_index/"
-repository = "https://github.com/shore-ai/lexion-fractional-index/"
+repository = "https://github.com/TODO/lexicon-fractional-index/"
 readme = "README.md"
 keywords = ["fractional-index"]
 

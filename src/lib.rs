@@ -79,9 +79,7 @@ fn midpoint(a: &str, b: &str) -> String {
     // go.  note that we don't need to pad `b`, because it can't
     // end before `a` while traversing the common prefix.
     let mut i = 0;
-    // TODO how Go made this happen?
-    // https://github.com/rocicorp/fracdex/blob/main/fracdex.go#L110-L112
-    for _ in 0..std::cmp::max(a.len(), b.len()) {
+    for _ in 0..a.len() {
       let mut c: char = '0';
       if a.len() > i {
         c = a.chars().nth(i).unwrap()
@@ -116,7 +114,10 @@ fn midpoint(a: &str, b: &str) -> String {
 
   // first digits are consecutive
   if b.len() > 1 {
-    return b[0..1].to_string();
+    if !b.starts_with('0') {
+      return b[0..1].to_string();
+    }
+    return BASE62_DIGITS.chars().nth(digit_a).unwrap().to_string() + &midpoint("", &b[1..]);
   }
 
   // `b` is empty or has length 1 (a single digit).
