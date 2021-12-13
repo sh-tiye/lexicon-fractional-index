@@ -116,8 +116,8 @@ fn midpoint(a: &str, b: &str) -> String {
 
   // first digits are consecutive
   if b.len() > 1 {
-    if b.chars().nth(0).unwrap().to_string()!="0"{
-    return b[0..1].to_string();
+    if b.chars().nth(0).unwrap().to_string() != "0" {
+      return b[0..1].to_string();
     }
     return BASE62_DIGITS.chars().nth(digit_a).unwrap().to_string() + &midpoint("", &b[1..]);
   }

@@ -40,21 +40,9 @@ fn keys_test() -> Result<(), String> {
     "A00000000000000000000000000",
     "invalid order key: A00000000000000000000000000",
   )?;
-  test_check(
-    "",
-    "A000000000000000000000000001",
-    "A000000000000000000000000000V",
-  )?;
-  test_check(
-    "zzzzzzzzzzzzzzzzzzzzzzzzzzy",
-    "",
-    "zzzzzzzzzzzzzzzzzzzzzzzzzzz",
-  )?;
-  test_check(
-    "zzzzzzzzzzzzzzzzzzzzzzzzzzz",
-    "",
-    "zzzzzzzzzzzzzzzzzzzzzzzzzzzV",
-  )?;
+  test_check("", "A000000000000000000000000001", "A000000000000000000000000000V")?;
+  test_check("zzzzzzzzzzzzzzzzzzzzzzzzzzy", "", "zzzzzzzzzzzzzzzzzzzzzzzzzzz")?;
+  test_check("zzzzzzzzzzzzzzzzzzzzzzzzzzz", "", "zzzzzzzzzzzzzzzzzzzzzzzzzzzV")?;
   test_check("a00", "", "invalid order key: a00")?;
   test_check("a00", "a1", "invalid order key: a00")?;
   test_check("0", "1", "invalid order key head: 0")?;
