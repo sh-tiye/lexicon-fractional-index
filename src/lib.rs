@@ -22,16 +22,16 @@ pub fn key_between(a: &str, b: &str) -> Result<String, String> {
       return Ok(ZERO.to_owned());
     }
 
-    let ib = get_int_part(b)?;
+    let int_b = get_int_part(b)?;
 
-    let fb = &b[ib.len()..];
-    if ib == SMALLEST_INT {
-      return Ok((ib as String) + &midpoint("", fb));
+    let float_part_b = &b[int_b.len()..];
+    if int_b == SMALLEST_INT {
+      return Ok((int_b as String) + &midpoint("", float_part_b));
     }
-    if ib.as_str() < b {
-      return Ok(ib);
+    if int_b.as_str() < b {
+      return Ok(int_b);
     }
-    let res = decrement_int(&ib)?;
+    let res = decrement_int(&int_b)?;
 
     if res.is_empty() {
       return Err("range underflow".to_owned());
@@ -40,26 +40,26 @@ pub fn key_between(a: &str, b: &str) -> Result<String, String> {
   }
 
   if b.is_empty() {
-    let ia = get_int_part(a)?;
+    let int_a = get_int_part(a)?;
 
-    let fa = &a[ia.len()..];
-    let i = increment_int(&ia)?;
+    let float_part_a = &a[int_a.len()..];
+    let i = increment_int(&int_a)?;
     if i.is_empty() {
-      return Ok(ia + &midpoint(fa, ""));
+      return Ok(int_a + &midpoint(float_part_a, ""));
     }
     return Ok(i);
   }
 
-  let ia = get_int_part(a)?;
+  let int_a = get_int_part(a)?;
 
-  let fa = &a[ia.len()..];
-  let ib = get_int_part(b)?;
+  let float_part_a = &a[int_a.len()..];
+  let int_b = get_int_part(b)?;
 
-  let fb = &b[ib.len()..];
-  if ia == ib {
-    return Ok(ia + &midpoint(fa, fb));
+  let float_part_b = &b[int_b.len()..];
+  if int_a == int_b {
+    return Ok(int_a + &midpoint(float_part_a, float_part_b));
   }
-  let i = increment_int(&ia)?;
+  let i = increment_int(&int_a)?;
 
   if i.is_empty() {
     return Err("range overflow".to_owned());
@@ -67,7 +67,7 @@ pub fn key_between(a: &str, b: &str) -> Result<String, String> {
   if i.as_str() < b {
     return Ok(i);
   }
-  Ok(ia + &midpoint(fa, ""))
+  Ok(int_a + &midpoint(float_part_a, ""))
 }
 
 /// `a < b` lexicographically if `b` is non-empty.
@@ -96,6 +96,31 @@ fn midpoint(a: &str, b: &str) -> String {
         return b[0..i].to_string() + midpoint(&a[i..], &b[i..]).as_str();
       }
     }
+    /*
+    let mut prefix_last_index = 0;
+    loop {
+      if prefix_last_index >= b.len() { break; }
+      let cur_a_char =
+        if prefix_last_index < a.len() {
+          a.chars().nth(prefix_last_index).unwrap()
+        } else {
+          '0'
+        };
+      let cur_b_char = b.chars().nth(prefix_last_index).unwrap();
+      if cur_a_char != cur_b_char { break; }
+      prefix_last_index += 1;
+    }
+    if prefix_last_index > 0 {
+      return b[0..prefix_last_index].to_string() +
+        midpoint(
+          if prefix_last_index >= a.len() {
+            ""
+          } else {
+            &a[prefix_last_index..]
+          },
+          &b[prefix_last_index..]
+        ).as_str();
+    }*/
   }
 
   // first digits (or lack of digit) are different
@@ -168,10 +193,10 @@ fn validate_order_key(key: &str) -> Result<(), String> {
   // get_int_part will return error if the first character is bad,
   // or the key is too short.  we'd call it to check these things
   // even if we didn't need the result
-  let i = get_int_part(key)?;
+  let int = get_int_part(key)?;
 
-  let f = &key[i.len()..];
-  if f.ends_with('0') {
+  let float_part = &key[int.len()..];
+  if float_part.ends_with('0') {
     return Err(format!("invalid order key: {}", key));
   }
   Ok(())
@@ -215,7 +240,7 @@ fn increment_int(x: &str) -> Result<String, String> {
     if h.as_str() > "a" {
       digs.push("0".to_owned())
     } else {
-      digs.remove(0);
+      digs.pop();
     }
     return Ok((h as String) + &digs.join(""));
   }
@@ -264,7 +289,7 @@ fn decrement_int(x: &str) -> Result<String, String> {
     if h < 'Z' {
       digs.push((BASE62_DIGITS.chars().nth_back(0).unwrap()).to_string());
     } else {
-      digs.remove(0);
+      digs.pop();
     }
     return Ok(h.to_string() + &digs.join(""));
   }
