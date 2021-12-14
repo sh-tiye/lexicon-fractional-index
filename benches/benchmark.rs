@@ -32,11 +32,13 @@ fn get_random_head() -> (char, usize) {
 /**
  * Generate random valid string tuple.
  * 
+ * Generated string may be "" or without float part.
+ * 
  * @param `min_len` - `u64` Minimal length of float part of generated string
  * 
  * @param `max_len` - `u64` Maximal length of float part generated string
  * 
- * @return `(String, String)` first always greater than second
+ * @return `(String, String)` first always less than second
  */
 fn generate_str_pair(min_len: u64, max_len: u64) -> (String, String) {
   let mut rng = thread_rng();
