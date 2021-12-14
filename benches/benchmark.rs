@@ -1,6 +1,6 @@
 extern crate lexicon_fractional_index;
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion, BatchSize, SamplingMode};
 use lexicon_fractional_index::{key_between, n_keys_between, float64_approx};
 use rand::{thread_rng, Rng, random};
 
@@ -120,35 +120,42 @@ fn generate_test_data(count: u64, min_len: u64, max_len: u64) -> Vec<(String, St
 
 fn criterion_benchmark(c: &mut Criterion) {
 
-  c.bench_function(
+  let mut group = c.benchmark_group("fractional_index tests");
+  group.sampling_mode(SamplingMode::Flat);
+
+  group.bench_function(
     "key_between tests, 1e3 <= length < 1e4",
     |b| {
-      let normal_test_data = generate_str_pair(1e3 as u64, 1e4 as u64);
-      b.iter(
-        || {
-            match key_between(&normal_test_data.0, &normal_test_data.1) {
+      b.iter_batched(
+        || generate_str_pair(1e3 as u64, 1e4 as u64),
+        |data| {
+            match key_between(&data.0, &data.1) {
               Err(e) => panic!("{}", e),
               _ => (),
             };
-        }
+        },
+        BatchSize::SmallInput,
       )
     },
   );
 
-  c.bench_function(
+  group.bench_function(
     "n_key_between tests, n = 100, 1e3 <= length < 1e4",
     |b| {
-      let test_data = generate_str_pair(1e3 as u64, 1e4 as u64);
-      b.iter(
-        || {
-          match n_keys_between(&test_data.0, &test_data.1, 100) {
+      b.iter_batched(
+        || generate_str_pair(1e3 as u64, 1e4 as u64),
+        |data| {
+          match n_keys_between(&data.0, &data.1, 100) {
             Err(e) => panic!("{}", e),
             _ => (),
           };
-        }
+        },
+        BatchSize::SmallInput,
       )
     }
   );
+
+  group.finish();
 
 }
 
