@@ -92,3 +92,33 @@ fn insert_middle_right_test() -> Result<(), String> {
 
   Ok(())
 }
+
+#[test]
+fn insert_middle_left_right_test() -> Result<(), String> {
+  let mut left = "Zj".to_owned();
+  let mut right = "Zk".to_owned();
+
+  let mut at_right = false;
+
+  for _ in 0..4000 {
+    let next = key_between(&left, &right)?;
+    assert_ne!(&left, &next);
+    assert_ne!(&right, &next);
+
+    // println!("< {:?} {:?}", left, right);
+    assert!(left < next);
+    assert!(next < right);
+
+    if at_right {
+      right = next;
+      at_right = false
+    } else {
+      left = next;
+      at_right = true
+    }
+  }
+
+  println!("< {:?} {:?}", left, right);
+
+  Ok(())
+}
