@@ -29,44 +29,68 @@ fn get_random_head() -> (char, usize) {
   return (head, get_int_len(head));
 }
 
+/**
+ * Generate random valid string tuple.
+ * 
+ * @param `min_len` - `u64` Minimal length of float part of generated string
+ * 
+ * @param `max_len` - `u64` Maximal length of float part generated string
+ * 
+ * @return `(String, String)` first always greater than second
+ */
 fn generate_str_pair(min_len: u64, max_len: u64) -> (String, String) {
   let mut rng = thread_rng();
-  let is_first_float: bool = random();
-  let is_second_float: bool = random();
-  let (first_head, first_len) = get_random_head();
-  let (second_head, second_len) = get_random_head();
-  let mut first = String::from(first_head);
-  for _ in 0..first_len {
-    first.push(get_random_char());
-  }
-  let mut second = String::from(second_head);
-  for _ in 0..second_len {
-    second.push(get_random_char());
-  }
-  if is_first_float {
-    let float_first_len = rng.gen_range(min_len..max_len);
-    for _ in 0..float_first_len {
+  let mut first;
+  let mut second;
+  loop {
+    let is_first_float: bool = random();
+    let is_second_float: bool = random();
+    let (first_head, first_len) = get_random_head();
+    let (second_head, second_len) = get_random_head();
+    first = String::from(first_head);
+    for _ in 0..first_len {
       first.push(get_random_char());
     }
-  }
-  if is_second_float {
-    let float_second_len = rng.gen_range(min_len..max_len);
-    for _ in 0..float_second_len {
+    second = String::from(second_head);
+    for _ in 0..second_len {
       second.push(get_random_char());
     }
-  }
-  let is_first_empty: bool = random();
-  let is_second_empty: bool = random();
-  if is_first_empty {
-    first = String::from("");
-  }
-  if is_second_empty {
-    second = String::from("");
+    if is_first_float {
+      let float_first_len = rng.gen_range(min_len..max_len);
+      for _ in 0..float_first_len {
+        first.push(get_random_char());
+      }
+    }
+    if is_second_float {
+      let float_second_len = rng.gen_range(min_len..max_len);
+      for _ in 0..float_second_len {
+        second.push(get_random_char());
+      }
+    }
+    let is_first_empty: bool = random();
+    let is_second_empty: bool = random();
+    if is_first_empty {
+      first = String::from("");
+    }
+    if is_second_empty {
+      second = String::from("");
+    }
+    if first < second {
+      break;
+    }
   }
   return (first, second);
 }
 
-
+/**
+ * @param `count` - `u64` Size of data set
+ * 
+ * @param `min_len` - `u64` Minimal length of float part of generated string
+ * 
+ * @param `max_len` - `u64` Maximal length of float part of generated string
+ * 
+ * @return `Vec<(String, String)>`
+ */
 fn generate_test_data(count: u64, min_len: u64, max_len: u64) -> Vec<(String, String)> {
   let mut res = Vec::new();
   let mut it_count = 0;
