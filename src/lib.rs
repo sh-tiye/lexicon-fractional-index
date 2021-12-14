@@ -73,6 +73,7 @@ pub fn key_between(a: &str, b: &str) -> Result<String, String> {
 /// `a < b` lexicographically if `b` is non-empty.
 /// a == "" means first possible string.
 /// b == "" means last possible string.
+/// a, b MUST be str without head
 fn midpoint(a: &str, b: &str) -> String {
   if !b.is_empty() {
     // remove longest common prefix.  pad `a` with 0s as we
@@ -96,31 +97,6 @@ fn midpoint(a: &str, b: &str) -> String {
         return b[0..i].to_string() + midpoint(&a[i..], &b[i..]).as_str();
       }
     }
-    /*
-    let mut prefix_last_index = 0;
-    loop {
-      if prefix_last_index >= b.len() { break; }
-      let cur_a_char =
-        if prefix_last_index < a.len() {
-          a.chars().nth(prefix_last_index).unwrap()
-        } else {
-          '0'
-        };
-      let cur_b_char = b.chars().nth(prefix_last_index).unwrap();
-      if cur_a_char != cur_b_char { break; }
-      prefix_last_index += 1;
-    }
-    if prefix_last_index > 0 {
-      return b[0..prefix_last_index].to_string() +
-        midpoint(
-          if prefix_last_index >= a.len() {
-            ""
-          } else {
-            &a[prefix_last_index..]
-          },
-          &b[prefix_last_index..]
-        ).as_str();
-    }*/
   }
 
   // first digits (or lack of digit) are different
@@ -167,6 +143,11 @@ fn validate_int(i: &str) -> Result<(), String> {
   Ok(())
 }
 
+/**
+ * length map:
+ * A-Z -> 28-2
+ * a-z -> 2-28
+ */
 fn get_int_len(head: char) -> Result<usize, String> {
   if ('a'..='z').contains(&head) {
     Ok((head as usize - 'a' as usize + 2) as usize)
@@ -177,6 +158,9 @@ fn get_int_len(head: char) -> Result<usize, String> {
   }
 }
 
+/**
+ * throw error when shorter than `get_int_len(head)`
+ */
 fn get_int_part(key: &str) -> Result<String, String> {
   let int_part_len = get_int_len(key.chars().next().unwrap())?;
 
@@ -186,6 +170,12 @@ fn get_int_part(key: &str) -> Result<String, String> {
   Ok(key[0..int_part_len].to_string())
 }
 
+/**
+ * throw when:
+ * first charater is not valid head
+ * short than `get_int_len(head)`
+ * ends with 0
+ */
 fn validate_order_key(key: &str) -> Result<(), String> {
   if key == SMALLEST_INT {
     return Err(format!("invalid order key: {}", key));
@@ -203,6 +193,7 @@ fn validate_order_key(key: &str) -> Result<(), String> {
 }
 
 /// returns error if x is invalid, or if range is exceeded
+/// x MUST be int without float part
 fn increment_int(x: &str) -> Result<String, String> {
   validate_int(x)?;
 
@@ -221,7 +212,7 @@ fn increment_int(x: &str) -> Result<String, String> {
   while carry && i >= 0 {
     let d = BASE62_DIGITS.find(&digs[i as usize]).unwrap() + 1;
     if d == BASE62_DIGITS.len() {
-      digs[i as usize] = "0".to_owned()
+      digs[i as usize] = "0".to_owned();
     } else {
       digs[i as usize] = BASE62_DIGITS.chars().nth(d).unwrap().to_string();
       carry = false;
@@ -237,9 +228,9 @@ fn increment_int(x: &str) -> Result<String, String> {
       return Ok("".to_owned());
     }
     let h = ((head.chars().next().unwrap() as u8 + 1) as char).to_string();
-    if h.as_str() > "a" {
+    if h.as_str() > "a" { // a-z -> incr
       digs.push("0".to_owned())
-    } else {
+    } else {  // A-Z -> decr
       digs.pop();
     }
     return Ok((h as String) + &digs.join(""));
@@ -266,7 +257,8 @@ fn decrement_int(x: &str) -> Result<String, String> {
   while borrow && i >= 0 {
     let d: i64 = match BASE62_DIGITS.find(&digs[i as usize]) {
       Some(n) => (n as i64 - 1),
-      None => -2, // TODO
+      None => -2, // TODO:
+      // not deal with -2 in nodejs ver
     };
 
     if d == -1 {
