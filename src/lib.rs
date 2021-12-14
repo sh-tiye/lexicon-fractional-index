@@ -255,11 +255,7 @@ fn decrement_int(x: &str) -> Result<String, String> {
 
   let mut i = digs.len() as i64 - 1;
   while borrow && i >= 0 {
-    let d: i64 = match BASE62_DIGITS.find(&digs[i as usize]) {
-      Some(n) => (n as i64 - 1),
-      None => -2, // TODO:
-      // not deal with -2 in nodejs ver
-    };
+    let d: i64 = BASE62_DIGITS.find(&digs[i as usize]).unwrap() as i64 - 1;
 
     if d == -1 {
       digs[i as usize] = BASE62_DIGITS.chars().nth_back(0).unwrap().to_string();
