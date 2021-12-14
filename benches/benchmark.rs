@@ -22,6 +22,12 @@ fn get_random_char() -> char {
   return BASE62_DIGITS.chars().nth(random_index).unwrap();
 }
 
+fn get_random_char_non_zero() -> char {
+  let mut rng = thread_rng();
+  let random_index: usize = rng.gen_range(1..BASE62_DIGITS.len());
+  return BASE62_DIGITS.chars().nth(random_index).unwrap();
+}
+
 fn get_random_head() -> (char, usize) {
   let mut rng = thread_rng();
   let random_index: usize = rng.gen_range(10..BASE62_DIGITS.len());
@@ -50,23 +56,31 @@ fn generate_str_pair(min_len: u64, max_len: u64) -> (String, String) {
     let (first_head, first_len) = get_random_head();
     let (second_head, second_len) = get_random_head();
     first = String::from(first_head);
-    for _ in 0..first_len {
+    for _ in 0..first_len - 1 {
       first.push(get_random_char());
     }
     second = String::from(second_head);
-    for _ in 0..second_len {
+    for _ in 0..second_len - 1 {
       second.push(get_random_char());
     }
     if is_first_float {
       let float_first_len = rng.gen_range(min_len..max_len);
-      for _ in 0..float_first_len {
-        first.push(get_random_char());
+      for i in 0..float_first_len {
+        if i == float_first_len - 1 {
+          first.push(get_random_char_non_zero());
+        } else {
+          first.push(get_random_char());
+        }
       }
     }
     if is_second_float {
       let float_second_len = rng.gen_range(min_len..max_len);
-      for _ in 0..float_second_len {
-        second.push(get_random_char());
+      for i in 0..float_second_len {
+        if i == float_second_len - 1 {
+          second.push(get_random_char_non_zero());
+        } else {
+          second.push(get_random_char());
+        }
       }
     }
     let is_first_empty: bool = random();
@@ -113,7 +127,8 @@ fn criterion_benchmark(c: &mut Criterion) {
       b.iter(
         || {
             match key_between(&normal_test_data.0, &normal_test_data.1) {
-              _ => ()
+              Err(e) => panic!("{}", e),
+              _ => (),
             };
         }
       )
@@ -127,7 +142,8 @@ fn criterion_benchmark(c: &mut Criterion) {
       b.iter(
         || {
           match n_keys_between(&test_data.0, &test_data.1, 100) {
-            _ => ()
+            Err(e) => panic!("{}", e),
+            _ => (),
           };
         }
       )
