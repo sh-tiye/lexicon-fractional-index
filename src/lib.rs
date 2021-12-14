@@ -183,9 +183,9 @@ fn validate_order_key(key: &str) -> Result<(), String> {
   // get_int_part will return error if the first character is bad,
   // or the key is too short.  we'd call it to check these things
   // even if we didn't need the result
-  let int = get_int_part(key)?;
+  let int_part = get_int_part(key)?;
 
-  let float_part = &key[int.len()..];
+  let float_part = &key[int_part.len()..];
   if float_part.ends_with('0') {
     return Err(format!("invalid order key: {}", key));
   }
