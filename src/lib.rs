@@ -6,29 +6,33 @@ const ZERO: &str = "a0";
 /// Either a or b can be empty strings. If a is empty it indicates smallest key,
 /// If b is empty it indicates largest key.
 /// b must be empty string or > a.
-pub fn key_between(a: &str, b: &str) -> Result<String, String> {
+pub fn key_between(a: &Option<String>, b: &Option<String>) -> Result<String, String> {
   // println!("between: {} {}", a, b);
-  if !a.is_empty() {
-    validate_order_key(a)?;
+  if !a.is_none() {
+    validate_order_key(a.as_ref().unwrap())?;
   }
-  if !b.is_empty() {
-    validate_order_key(b)?;
+  if !b.is_none() {
+    validate_order_key(b.as_ref().unwrap())?;
   }
-  if !a.is_empty() && !b.is_empty() && a >= b {
-    return Err(format!("invalid order: {} >= {}", a, b));
+  if !a.is_none() && !b.is_none() && a >= b {
+    return Err(format!(
+      "invalid order: {} >= {}",
+      a.as_deref().unwrap(),
+      b.as_deref().unwrap()
+    ));
   }
-  if a.is_empty() {
-    if b.is_empty() {
+  if a.is_none() {
+    if b.is_none() {
       return Ok(ZERO.to_owned());
     }
 
-    let int_b = get_int_part(b)?;
+    let int_b = get_int_part(b.as_deref().unwrap())?;
 
-    let float_part_b = &b[int_b.len()..];
+    let float_part_b = &b.as_deref().unwrap()[int_b.len()..];
     if int_b == SMALLEST_INT {
       return Ok((int_b as String) + &midpoint("", float_part_b));
     }
-    if int_b.as_str() < b {
+    if int_b.as_str() < b.as_deref().unwrap() {
       return Ok(int_b);
     }
     let res = decrement_int(&int_b)?;
@@ -39,10 +43,10 @@ pub fn key_between(a: &str, b: &str) -> Result<String, String> {
     return Ok(res);
   }
 
-  if b.is_empty() {
-    let int_a = get_int_part(a)?;
+  if b.is_none() {
+    let int_a = get_int_part(a.as_deref().unwrap())?;
 
-    let float_part_a = &a[int_a.len()..];
+    let float_part_a = &a.as_deref().unwrap()[int_a.len()..];
     let i = increment_int(&int_a)?;
     if i.is_empty() {
       return Ok(int_a + &midpoint(float_part_a, ""));
@@ -50,12 +54,12 @@ pub fn key_between(a: &str, b: &str) -> Result<String, String> {
     return Ok(i);
   }
 
-  let int_a = get_int_part(a)?;
+  let int_a = get_int_part(a.as_deref().unwrap())?;
 
-  let float_part_a = &a[int_a.len()..];
-  let int_b = get_int_part(b)?;
+  let float_part_a = &a.as_deref().unwrap()[int_a.len()..];
+  let int_b = get_int_part(b.as_ref().unwrap())?;
 
-  let float_part_b = &b[int_b.len()..];
+  let float_part_b = &b.as_ref().unwrap()[int_b.len()..];
   if int_a == int_b {
     return Ok(int_a + &midpoint(float_part_a, float_part_b));
   }
@@ -64,7 +68,7 @@ pub fn key_between(a: &str, b: &str) -> Result<String, String> {
   if i.is_empty() {
     return Err("range overflow".to_owned());
   }
-  if i.as_str() < b {
+  if i.as_str() < b.as_ref().unwrap() {
     return Ok(i);
   }
   Ok(int_a + &midpoint(float_part_a, ""))
@@ -197,9 +201,7 @@ fn validate_order_key(key: &str) -> Result<(), String> {
 fn increment_int(x: &str) -> Result<String, String> {
   validate_int(x)?;
 
-  let mut digs: Vec<char> = x
-    .chars()
-    .collect();
+  let mut digs: Vec<char> = x.chars().collect();
   let head = digs[0];
   digs.remove(0);
   let mut carry = true;
@@ -224,9 +226,11 @@ fn increment_int(x: &str) -> Result<String, String> {
       return Ok("".to_owned());
     }
     let h = (head as u8 + 1) as char;
-    if h > 'a' { // a-z -> incr
+    if h > 'a' {
+      // a-z -> incr
       digs.push('0')
-    } else {  // A-Z -> decr
+    } else {
+      // A-Z -> decr
       digs.pop();
     }
     return Ok(h.to_string() + &digs.iter().collect::<String>());
@@ -237,9 +241,7 @@ fn increment_int(x: &str) -> Result<String, String> {
 fn decrement_int(x: &str) -> Result<String, String> {
   validate_int(x)?;
 
-  let mut digs: Vec<char> = x
-    .chars()
-    .collect();
+  let mut digs: Vec<char> = x.chars().collect();
 
   let head = digs[0];
   digs.remove(0);
@@ -323,7 +325,7 @@ pub fn float64_approx(key: &str) -> Result<f64, String> {
 /// Either a or b can be empty strings. If a is empty it indicates smallest key,
 /// If b is empty it indicates largest key.
 /// b must be empty string or > a.
-pub fn n_keys_between(a: &str, b: &str, n: usize) -> Result<Vec<String>, String> {
+pub fn n_keys_between(a: &Option<String>, b: &Option<String>, n: usize) -> Result<Vec<String>, String> {
   if n == 0 {
     return Ok(vec![]);
   }
@@ -332,25 +334,25 @@ pub fn n_keys_between(a: &str, b: &str, n: usize) -> Result<Vec<String>, String>
 
     return Ok(vec![c]);
   }
-  if b.is_empty() {
+  if b.is_none() {
     let mut c = key_between(a, b)?;
     let mut result: Vec<String> = Vec::with_capacity(n);
     result.push(c.to_owned());
 
     for _i in 0..((n as usize) - 1) {
-      c = key_between(&c, b)?;
+      c = key_between(&Some(c), b)?;
       result.push(c.to_owned());
     }
 
     return Ok(result);
   }
-  if a.is_empty() {
+  if a.is_none() {
     let mut c = key_between(a, b)?;
 
     let mut result: Vec<String> = Vec::with_capacity(n);
     result.push(c.to_owned());
     for _i in 0..(n as usize - 1) {
-      c = key_between(a, &c)?;
+      c = key_between(a, &Some(c))?;
       result.push(c.to_owned());
     }
     result.reverse();
@@ -361,14 +363,14 @@ pub fn n_keys_between(a: &str, b: &str, n: usize) -> Result<Vec<String>, String>
 
   let mut result: Vec<String> = Vec::with_capacity(n);
   {
-    let key_r = n_keys_between(a, &c, mid)?;
+    let key_r = n_keys_between(a, &Some(c.to_owned()), mid)?;
     for item in key_r {
       result.push(item.clone());
     }
   }
   result.push(c.to_owned());
   {
-    let key_r = n_keys_between(&c, b, n - mid - 1)?;
+    let key_r = n_keys_between(&Some(c), b, n - mid - 1)?;
     for item in key_r.iter() {
       result.push(item.to_owned());
     }
