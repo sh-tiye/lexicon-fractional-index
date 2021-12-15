@@ -1,8 +1,8 @@
 extern crate lexicon_fractional_index;
 
-use criterion::{criterion_group, criterion_main, Criterion, BatchSize, SamplingMode};
+use criterion::{criterion_group, criterion_main, BatchSize, Criterion, SamplingMode};
 use lexicon_fractional_index::{key_between, n_keys_between};
-use rand::{thread_rng, Rng, random};
+use rand::{random, thread_rng, Rng};
 
 const BASE62_DIGITS: &str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
@@ -37,16 +37,16 @@ fn get_random_head() -> (char, usize) {
 
 /**
  * Generate random valid string tuple.
- * 
+ *
  * Generated string may be "" or without float part.
- * 
+ *
  * @param `min_len` - `u64` Minimal length of float part of generated string
- * 
+ *
  * @param `max_len` - `u64` Maximal length of float part generated string
- * 
+ *
  * @return `(String, String)` first always less than second
  */
-fn generate_str_pair(min_len: u64, max_len: u64) -> (String, String) {
+fn generate_str_pair(min_len: u64, max_len: u64) -> (Option<String>, Option<String>) {
   let mut rng = thread_rng();
   let mut first;
   let mut second;
@@ -95,46 +95,46 @@ fn generate_str_pair(min_len: u64, max_len: u64) -> (String, String) {
       break;
     }
   }
-  (first, second)
+  (str_to_option(&first), str_to_option(&second))
+}
+
+fn str_to_option(s: &str) -> Option<String> {
+  if s.is_empty() {
+    None
+  } else {
+    Some(s.to_owned())
+  }
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
-
   let mut group = c.benchmark_group("fractional_index tests");
   group.sampling_mode(SamplingMode::Flat);
 
-  group.bench_function(
-    "key_between tests, 1e3 <= length < 1e4",
-    |b| {
-      b.iter_batched(
-        || generate_str_pair(1e3 as u64, 1e4 as u64),
-        |data| {
-          if let Err(e) = key_between(&data.0, &data.1) {
-            panic!("{}", e);
-          }
-        },
-        BatchSize::SmallInput,
-      )
-    },
-  );
+  group.bench_function("key_between tests, 1e3 <= length < 1e4", |b| {
+    b.iter_batched(
+      || generate_str_pair(1e3 as u64, 1e4 as u64),
+      |data| {
+        if let Err(e) = key_between(&data.0, &data.1) {
+          panic!("{}", e);
+        }
+      },
+      BatchSize::SmallInput,
+    )
+  });
 
-  group.bench_function(
-    "n_key_between tests, n = 100, 1e3 <= length < 1e4",
-    |b| {
-      b.iter_batched(
-        || generate_str_pair(1e3 as u64, 1e4 as u64),
-        |data| {
-          if let Err(e) = n_keys_between(&data.0, &data.1, 100) {
-            panic!("{}", e);
-          }
-        },
-        BatchSize::SmallInput,
-      )
-    }
-  );
+  group.bench_function("n_key_between tests, n = 100, 1e3 <= length < 1e4", |b| {
+    b.iter_batched(
+      || generate_str_pair(1e3 as u64, 1e4 as u64),
+      |data| {
+        if let Err(e) = n_keys_between(&data.0, &data.1, 100) {
+          panic!("{}", e);
+        }
+      },
+      BatchSize::SmallInput,
+    )
+  });
 
   group.finish();
-
 }
 
 criterion_group!(benches, criterion_benchmark);

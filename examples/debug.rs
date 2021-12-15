@@ -24,7 +24,7 @@ fn main() -> Result<(), String> {
   let mut right = "Xb0M0V".to_owned();
 
   for _i in 0..1000 {
-    let next = key_between(&left, &right)?;
+    let next = key_between(&Some(left.to_owned()), &Some(right.to_owned()))?;
     println!("key: {}", next);
     right = next;
   }
