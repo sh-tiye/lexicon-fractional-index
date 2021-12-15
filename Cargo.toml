@@ -14,3 +14,11 @@ keywords = ["fractional-index"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+[dev-dependencies]
+criterion = "0.3"
+rand = "0.8.4"
+
+[[bench]]
+name = "benchmark"
+harness = false
