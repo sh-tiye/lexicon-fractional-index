@@ -1,15 +1,15 @@
 extern crate lexicon_fractional_index;
 
 use criterion::{criterion_group, criterion_main, Criterion, BatchSize, SamplingMode};
-use lexicon_fractional_index::{key_between, n_keys_between, float64_approx};
+use lexicon_fractional_index::{key_between, n_keys_between};
 use rand::{thread_rng, Rng, random};
 
 const BASE62_DIGITS: &str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 fn get_int_len(head: char) -> usize {
-  if head >= 'a' && head <= 'z' {
+  if ('a'..='z').contains(&head) {
     head as usize - 'a' as usize + 2
-  } else if head >= 'A' && head <= 'Z' {
+  } else if ('A'..='Z').contains(&head) {
     'Z' as usize - head as usize + 2
   } else {
     panic!()
@@ -32,7 +32,7 @@ fn get_random_head() -> (char, usize) {
   let mut rng = thread_rng();
   let random_index: usize = rng.gen_range(10..BASE62_DIGITS.len());
   let head = BASE62_DIGITS.chars().nth(random_index).unwrap();
-  return (head, get_int_len(head));
+  (head, get_int_len(head))
 }
 
 /**
@@ -95,27 +95,7 @@ fn generate_str_pair(min_len: u64, max_len: u64) -> (String, String) {
       break;
     }
   }
-  return (first, second);
-}
-
-/**
- * @param `count` - `u64` Size of data set
- * 
- * @param `min_len` - `u64` Minimal length of float part of generated string
- * 
- * @param `max_len` - `u64` Maximal length of float part of generated string
- * 
- * @return `Vec<(String, String)>`
- */
-fn generate_test_data(count: u64, min_len: u64, max_len: u64) -> Vec<(String, String)> {
-  let mut res = Vec::new();
-  let mut it_count = 0;
-  while it_count < count {
-    let str_pair = generate_str_pair(min_len, max_len);
-    it_count += 1;
-    res.push(str_pair);
-  }
-  return res;
+  (first, second)
 }
 
 fn criterion_benchmark(c: &mut Criterion) {
@@ -129,10 +109,9 @@ fn criterion_benchmark(c: &mut Criterion) {
       b.iter_batched(
         || generate_str_pair(1e3 as u64, 1e4 as u64),
         |data| {
-            match key_between(&data.0, &data.1) {
-              Err(e) => panic!("{}", e),
-              _ => (),
-            };
+          if let Err(e) = key_between(&data.0, &data.1) {
+            panic!("{}", e);
+          }
         },
         BatchSize::SmallInput,
       )
@@ -145,10 +124,9 @@ fn criterion_benchmark(c: &mut Criterion) {
       b.iter_batched(
         || generate_str_pair(1e3 as u64, 1e4 as u64),
         |data| {
-          match n_keys_between(&data.0, &data.1, 100) {
-            Err(e) => panic!("{}", e),
-            _ => (),
-          };
+          if let Err(e) = n_keys_between(&data.0, &data.1, 100) {
+            panic!("{}", e);
+          }
         },
         BatchSize::SmallInput,
       )
